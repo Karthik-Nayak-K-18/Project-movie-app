@@ -1,58 +1,63 @@
 pipeline {
     agent any
+
     tools{
         jdk 'java-11'
         maven 'maven'
     }
-    stages{
-        stage('git checkout'){
-            steps{
-                git branch: 'main', url: 'https://github.com/ManojKRISHNAPPA/test-1.git'
-            }
-        }
-        stage('compile'){
-            steps{
-                sh "mvn compile"
-            }
-        }
-        stage('Build'){
-            steps{
-                sh "mvn clean install" 
-            }
-        }
-        stage('Build and Tag Docker file'){
-            steps{
-                sh "docker build -t manojkrishnappa/movie:1 ."
-            }
-        }
-        stage('Docker image scan'){
-            steps{
-                 sh "trivy image --format table -o trivy-image-report.html manojkrishnappa/movie:1"
+
+    stages {
+        stage ("git clone"){
+            steps {
+                git branch: 'main', credentialsId:'1682e59f-d8cd-4b0c-ab44-52a17e6cbb49', url: 'https://github.com/Karthik-Nayak-K-18/Project-movie-app.git'
             }
         }
 
-        stage('Containersation'){
-            steps{
-                sh '''
-                    docker stop  c1
-                    docker rm c1 
-                    docker run -it -d --name c1 -p 9002:8080 manojkrishnappa/movie:1
-                '''
+        stage ("compile"){
+            steps {
+                sh 'mvn compile'
             }
         }
 
-        stage('Login to Docker Hub') {
-                    steps {
-                        script {
+        stage ("build"){
+            steps{
+                sh 'mvn clean install'
+            }
+        }
+
+        stage ("Docker build & tag dockerfile"){
+            steps{
+                sh "docker build -t manojkrishnappa/movie:2 ."
+            }
+        }
+
+        stage ("trivy scan"){
+            steps{
+                sh "trivy image --format table -o trivy-image-report.html manojkrishnappa/movie:2"
+            }
+        }
+
+        stage ("containerization"){
+            steps{
+                sh "docker run -it -d --name ct1 -p 9002:8080 manojkrishnappa/movie:2"
+            }
+        }
+
+                stage ("docker login"){
+            steps{
+
+                script {
                             withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                                 sh "echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin"
                             }
-                        }
-                    }
+                }
+            }
         }
-        stage('Pushing image to repository'){
-            steps{
-                sh 'docker push manojkrishnappa/movie:1'
+
+        stage ("docker push") {
+            steps {
+                sh "docker tag manojkrishnappa/movie:2 karthiknayak18/docker-website:v.1"
+                sh "docker push karthiknayak18/docker-website:v.1"
             }
         }
     }
