@@ -24,7 +24,7 @@ pipeline {
                 sh 'mvn clean test'
             }
         }
-
+                    
         stage ("build"){
             steps{
                 sh 'mvn clean package'
@@ -62,8 +62,8 @@ pipeline {
 
         stage ("docker push") {
             steps {
-                sh "docker tag manojkrishnappa/movie:2 karthiknayak18/docker-website:v.1"
-                sh "docker push karthiknayak18/docker-website:v.1"
+                sh "docker tag manojkrishnappa/movie:2 karthiknayak18/docker-website:v.2"
+                sh "docker push karthiknayak18/docker-website:v.2"
             }
         }
     }
