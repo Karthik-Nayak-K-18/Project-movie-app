@@ -20,7 +20,7 @@ pipeline {
         }
 
         stage ('test') {
-            stages {
+            steps {
                 sh 'mvn clean test'
             }
         }
